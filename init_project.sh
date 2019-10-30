@@ -68,7 +68,7 @@ for SRC_FILE_PATH in $SRC_DIRECTORY_PATH/* $SRC_DIRECTORY_PATH/.[^.]* ; do
 		DEST_PATH=$CURRENT_PATH;
 		DEST_FILE_PATH="$DEST_PATH/$FILENAME"
 		if [[ -d "$DEST_FILE_PATH" ]]; then
-			diff -q -r $SRC_FILE_PATH $DEST_FILE_PATH;
+			diff -q -r $SRC_FILE_PATH $DEST_FILE_PATH &> /dev/null;
 			RESULT=$?;
 			if [[ ${RESULT} -eq 0 ]]; then
 				echo "> Skip unchanged directory '$SRC_FILE_PATH' ($DEST_FILE_PATH)!";
