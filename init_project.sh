@@ -95,6 +95,30 @@ for SRC_FILE_PATH in $SRC_DIRECTORY_PATH/* $SRC_DIRECTORY_PATH/.[^.]* ; do
 	fi
 done 
 
+# GIT SUBMODULEs
+if [[ -d "$CURRENT_PATH/commons" ]]; then
+	echo "> SKIP GIT submodule initialization in '$CURRENT_PATH'";
+else # NEED TO INIT GIT SUBMODULES
+	declare -a SUBMODULES=(
+		"commons"
+		"commons-android"
+		"app-android"
+	);
+	PROJECT_NAME="${CURRENT_DIRECTORY:0:$((${#CURRENT_DIRECTORY} - 7))}"
+	if [[ $PROJECT_NAME == "mtransit-for-android" ]]; then
+		echo "> Main android app: '$PROJECT_NAME' > parser NOT required";
+	elif [[ $PROJECT_NAME == *bike ]]; then
+		echo "> Bike android app: '$PROJECT_NAME' > parser NOT required";
+	else
+		echo "> Bus/Train/... android app: '$PROJECT_NAME' > parser required";
+		SUBMODULES+=('parser');
+		SUBMODULES+=('agency-parser');
+	fi
+	echo "> Submodules:";
+	printf '> - "%s"\n' "${SUBMODULES[@]}";
+fi
+
+echo "--------------------------------------------------------------------------------";
 AFTER_DATE=$(date +%D-%X);
 AFTER_DATE_SEC=$(date +%s);
 DURATION_SEC=$(($AFTER_DATE_SEC-$BEFORE_DATE_SEC));
