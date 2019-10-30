@@ -35,7 +35,7 @@ for SRC_FILE_PATH in $SRC_DIRECTORY_PATH/* $SRC_DIRECTORY_PATH/.[^.]* ; do
 	echo "--------------------------------------------------------------------------------";
 	FILENAME=$(basename ${SRC_FILE_PATH});
 	if shouldSkeep $FILENAME; then
-        echo "> Skip excluded '$SRC_FILE_PATH'";
+        echo "> SKIP excluded '$SRC_FILE_PATH'";
         echo "--------------------------------------------------------------------------------";
         continue;
     fi
@@ -47,13 +47,13 @@ for SRC_FILE_PATH in $SRC_DIRECTORY_PATH/* $SRC_DIRECTORY_PATH/.[^.]* ; do
 			diff -q ${SRC_FILE_PATH} $DEST_FILE_PATH &> /dev/null;
 			RESULT=$?;
 			if [[ ${RESULT} -eq 0 ]]; then
-				echo "> Skip unchanged file '$SRC_FILE_PATH' ($DEST_FILE_PATH)!";
+				echo "> SKIP unchanged file '$SRC_FILE_PATH' ($DEST_FILE_PATH)";
 				echo "--------------------------------------------------------------------------------";
 				continue;
 			fi
-			ACTION="Updating";
+			ACTION="UPDATING";
 		else
-			ACTION="Initializing";
+			ACTION="INITIALIZING";
 		fi
 		echo "> $ACTION file '$SRC_FILE_PATH' in '$DEST_PATH'...";
 		cp $SRC_FILE_PATH $DEST_FILE_PATH;
@@ -71,13 +71,13 @@ for SRC_FILE_PATH in $SRC_DIRECTORY_PATH/* $SRC_DIRECTORY_PATH/.[^.]* ; do
 			diff -q -r $SRC_FILE_PATH $DEST_FILE_PATH &> /dev/null;
 			RESULT=$?;
 			if [[ ${RESULT} -eq 0 ]]; then
-				echo "> Skip unchanged directory '$SRC_FILE_PATH' ($DEST_FILE_PATH)!";
+				echo "> SKIP unchanged directory '$SRC_FILE_PATH' ($DEST_FILE_PATH)";
 				continue
 			fi
 
-			ACTION="Updating";
+			ACTION="UPDATING";
 		else
-			ACTION="Initializing";
+			ACTION="INITIALIZING";
 		fi
 		echo "> $ACTION directory '$SRC_FILE_PATH' in '$DEST_PATH/'...";
 		cp -R $SRC_FILE_PATH $DEST_PATH/;
