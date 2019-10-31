@@ -96,6 +96,7 @@ for SRC_FILE_PATH in $SRC_DIRECTORY_PATH/* $SRC_DIRECTORY_PATH/.[^.]* ; do
 done 
 
 # GIT SUBMODULEs
+INIT_SUBMODULE=false;
 if [[ -f "$CURRENT_PATH/.gitmodules" ]]; then
 	INIT_SUBMODULE=false;
 else
