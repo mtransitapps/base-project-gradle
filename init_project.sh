@@ -97,43 +97,50 @@ done
 
 # GIT SUBMODULEs
 if [[ -f "$CURRENT_PATH/.gitmodules" ]]; then
-	echo "> SKIP GIT submodule initialization in '$CURRENT_PATH/'";
-else # NEED TO INIT GIT SUBMODULES
-	GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD);
-	declare -a SUBMODULES=(
-		"commons"
-		"commons-android"
-		"app-android"
-	);
-	PROJECT_NAME="${CURRENT_DIRECTORY:0:$((${#CURRENT_DIRECTORY} - 7))}"
-	declare -a SUBMODULES_REPO=(
-		"commons"
-		"commons-android"
-		"$PROJECT_NAME-android"
-	);
-	if [[ $PROJECT_NAME == "mtransit-for-android" ]]; then
-		echo "> Main android app: '$PROJECT_NAME' > parser NOT required";
-	elif [[ $PROJECT_NAME == *bike ]]; then
-		echo "> Bike android app: '$PROJECT_NAME' > parser NOT required";
-	else
-		echo "> Bus/Train/... android app: '$PROJECT_NAME' > parser required";
-		SUBMODULES+=('parser');
-		SUBMODULES_REPO+=('parser');
-		SUBMODULES+=('agency-parser');
-		SUBMODULES_REPO+=("${PROJECT_NAME}-parser");
+	INIT_SUBMODULE=false;
+else
+	INIT_SUBMODULE=true;
+fi
+GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD);
+declare -a SUBMODULES=(
+	"commons"
+	"commons-android"
+	"app-android"
+);
+PROJECT_NAME="${CURRENT_DIRECTORY:0:$((${#CURRENT_DIRECTORY} - 7))}"
+declare -a SUBMODULES_REPO=(
+	"commons"
+	"commons-android"
+);
+if [[ $PROJECT_NAME == *android ]]; then
+	SUBMODULES_REPO+=($PROJECT_NAME);
+else
+	SUBMODULES_REPO+=("$PROJECT_NAME-android");
+fi
+if [[ $PROJECT_NAME == "mtransit-for-android" ]]; then
+	echo "> Main android app: '$PROJECT_NAME' > parser NOT required";
+elif [[ $PROJECT_NAME == *bike ]]; then
+	echo "> Bike android app: '$PROJECT_NAME' > parser NOT required";
+else
+	echo "> Bus/Train/... android app: '$PROJECT_NAME' > parser required";
+	SUBMODULES+=('parser');
+	SUBMODULES_REPO+=('parser');
+	SUBMODULES+=('agency-parser');
+	SUBMODULES_REPO+=("${PROJECT_NAME}-parser");
+fi
+echo "> Submodules:";
+printf '> - "%s"\n' "${SUBMODULES[@]}";
+for S in "${!SUBMODULES[@]}"; do
+	SUBMODULE=${SUBMODULES[$S]}
+	SUBMODULE_REPO=${SUBMODULES_REPO[$S]}
+	echo "--------------------------------------------------------------------------------";
+	if [[ -z "${SUBMODULE_REPO}" ]]; then
+		echo "SUBMODULE_REPO empty!";
+		exit 1;
 	fi
-	echo "> Submodules:";
-	printf '> - "%s"\n' "${SUBMODULES[@]}";
-	for S in "${!SUBMODULES[@]}"; do
-		SUBMODULE=${SUBMODULES[$S]}
-		SUBMODULE_REPO=${SUBMODULES_REPO[$S]}
-		echo "--------------------------------------------------------------------------------";
+	if [[ "$INIT_SUBMODULE" == true ]]; then # ADDNING GIT SUBMODULE
 		if [[ -d "$CURRENT_PATH/$SUBMODULE" ]]; then
 			echo "> Cannot override '$CURRENT_PATH/$SUBMODULE'!";
-			exit 1;
-		fi
-		if [[ -z "${SUBMODULE_REPO}" ]]; then
-			echo "SUBMODULE_REPO not found!";
 			exit 1;
 		fi
 		echo "> Adding submodule '$SUBMODULE_REPO' in '$SUBMODULE'...";
@@ -143,24 +150,30 @@ else # NEED TO INIT GIT SUBMODULES
 			echo "> Error while cloning '$SUBMODULE_REPO' submodule in '$SUBMODULE'!";
 			exit ${RESULT};
 		fi
-		git remote set-url origin git@github.com:mtransitapps/$SUBMODULE_REPO.git;
-		RESULT=$?;
-		if [[ ${RESULT} -ne 0 ]]; then
-			echo "> Error while seting remote URL for '$SUBMODULE_REPO' submodule in '$SUBMODULE'!";
-			exit ${RESULT};
-		fi
-		cd $CURRENT_PATH/$SUBMODULE || exit;
-		git checkout $GIT_BRANCH;
-		RESULT=$?;
-		if [[ ${RESULT} -ne 0 ]]; then
-			echo "> Error while checkint out $GIT_BRANCH in '$SUBMODULE_REPO' submodule in '$SUBMODULE'!";
-			exit ${RESULT};
-		fi
 		echo "> Adding submodule '$SUBMODULE_REPO' in '$SUBMODULE'... DONE";
-		cd $CURRENT_PATH || exit;
-		echo "--------------------------------------------------------------------------------";
-	done
-fi
+	fi
+	if ! [[ -d "$CURRENT_PATH/$SUBMODULE" ]]; then
+		echo "> Submodule directory '$CURRENT_PATH/$SUBMODULE' does NOT exist!";
+		exit 1;
+	fi
+	cd $CURRENT_PATH/$SUBMODULE || exit; # >>
+	echo "> Setting submodule remote URL '$SUBMODULE_REPO' in '$SUBMODULE'...";
+	git remote set-url origin git@github.com:mtransitapps/$SUBMODULE_REPO.git;
+	RESULT=$?;
+	if [[ ${RESULT} -ne 0 ]]; then
+		echo "> Error while setting remote URL for '$SUBMODULE_REPO' submodule in '$SUBMODULE'!";
+		exit ${RESULT};
+	fi
+	echo "> Setting submodule remote URL '$SUBMODULE_REPO' in '$SUBMODULE'... DONE";
+	git checkout $GIT_BRANCH;
+	RESULT=$?;
+	if [[ ${RESULT} -ne 0 ]]; then
+		echo "> Error while checkint out $GIT_BRANCH in '$SUBMODULE_REPO' submodule in '$SUBMODULE'!";
+		exit ${RESULT};
+	fi
+	cd $CURRENT_PATH || exit; # <<
+	echo "--------------------------------------------------------------------------------";
+done
 
 echo "--------------------------------------------------------------------------------";
 AFTER_DATE=$(date +%D-%X);
